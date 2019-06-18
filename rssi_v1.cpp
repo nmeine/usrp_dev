@@ -83,7 +83,8 @@ void recv_to_file(uhd::usrp::multi_usrp::sptr usrp,
            and (num_requested_samples != num_total_samps or num_requested_samples == 0)
            and (time_requested == 0.0 or std::chrono::steady_clock::now() <= stop_time)) {
         const auto now = std::chrono::steady_clock::now();
-
+        uhd::sensor_value_t rssi = usrp->get_rx_sensor("rssi"); //capture rssi
+        std::cout << rssi.to_real() << std::endl; //output rssi
         size_t num_rx_samps =
             rx_stream->recv(&buff.front(), buff.size(), md, 3.0, enable_size_map);
 
@@ -284,6 +285,7 @@ int main(int argc, char* argv[])
     std::cout << boost::format("Creating the usrp device with: %s...") % args
               << std::endl;
     uhd::usrp::multi_usrp::sptr usrp = uhd::usrp::multi_usrp::make(args);
+    //shared pointer usrp = static sptr to device with
 
     // Lock mboard clocks
     usrp->set_clock_source(ref);
@@ -348,7 +350,7 @@ int main(int argc, char* argv[])
         usrp->set_rx_antenna(ant, channel);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000 * setup_time)));
-
+    //sets thread to wait
     // check Ref and LO Lock detect
     if (not vm.count("skip-lo")) {
         check_locked_sensor(usrp->get_rx_sensor_names(channel),
